@@ -1,11 +1,11 @@
 import pandas as pd
-# import base64
-# import pickle
-# import uuid
-# import re
+import base64
+import pickle
+import uuid
+import re
 import streamlit as st
-# import os
-# import json
+import os
+import json
 
 
 
@@ -74,7 +74,7 @@ def material_series_string_generation(df_couples : pd.DataFrame, dict_output : d
                 s += (f"consist_pattern_unit;{single};\n")
     return s
     
-'''
+
 def download_link(object_to_download, download_filename, download_link_text):
     """
     Generates a link to download the given object_to_download.
@@ -179,12 +179,12 @@ def download_button(object_to_download, download_filename, button_text, pickle_i
 
     return dl_link
 
-    '''
+    
 
 def material_series_generation(df_couples : pd.DataFrame, dict_output : dict, CP :str):
 
     path = r'C:\Users\{id}\Downloads\couples codes rames traduits en séries matérielles.txt'.format(id = CP)
-    with open(path, 'w') as f:
+    with open(path, 'w+') as f:
         for couple in list(df_couples['Patron']):
             for serie in dict_output[couple]:
                     f.write("consist_pattern")
@@ -198,6 +198,10 @@ def material_series_generation(df_couples : pd.DataFrame, dict_output : dict, CP
                         f.write(";")
                         f.write(single)
                         f.write('\n')
+
+        s = f.readlines()
+    return s
+
         
 
 

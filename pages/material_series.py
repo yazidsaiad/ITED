@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 import utils
-# from datetime import datetime
-# import os
+from datetime import datetime
+import os
 
 
 def app():
@@ -46,24 +46,17 @@ def app():
         st.divider()
         
         st.info('Génération du fichier en cours...')
-        CP = st.text_input('Veuillez entrer votre CP')
-        if CP:
-            df__ , dict_output, _ = utils.material_series_creation(df_couples=df_couples, df_material_series=df_material_series)
-            #material_series_string = utils.material_series_string_generation(df_couples=df_couples, dict_output=dict_output)
-            utils.material_series_generation(df_couples=df_couples, dict_output=dict_output, CP=CP)
-            st.success('Génération terminée.')
-            st.divider()
-            st.markdown("<h1 style='text-align: center; color: black; font-size : 20px;'>Tableau des séries matérielles</h1>", unsafe_allow_html=True)
-            st.dataframe(df__)
-    
+        df__ , dict_output, _ = utils.material_series_creation(df_couples=df_couples, df_material_series=df_material_series)
+        material_series_string = utils.material_series_string_generation(df_couples=df_couples, dict_output=dict_output)
+        st.success('Génération terminée.')
+        st.divider()
+        st.markdown("<h1 style='text-align: center; color: black; font-size : 20px;'>Tableau des séries matérielles</h1>", unsafe_allow_html=True)
+        st.dataframe(df__)
+        st.divider()
+        st.markdown("<h1 style='text-align: center; color: black; font-size : 20px;'>Téléchargement du fichier généré</h1>", unsafe_allow_html=True)
+        st.download_button('Télécharger', material_series_string, file_name='couples codes rames traduits en séries matérielles.txt')
+
     st.divider()
 
-
-    '''
-    if st.button('Télécharger le fichier généré :'):
-        now = datetime.now()
-        dt_string = now.strftime("%d%m%Y_%Hh%Mmin%Ss")
-        tmp_download_link = utils.download_button(material_series_string, 'couples codes rames traduits en séries matérielles_' + dt_string + '.txt', 'Cliquez ici pour télécharger le fichier!')
-        st.markdown(tmp_download_link, unsafe_allow_html=True)
     
-    '''
+    
