@@ -1,12 +1,13 @@
 import pandas as pd
+import streamlit as st
+'''
 import base64
 import pickle
 import uuid
 import re
-import streamlit as st
 import os
 import json
-
+'''
 
 
 def material_series_init():
@@ -73,7 +74,8 @@ def material_series_string_generation(df_couples : pd.DataFrame, dict_output : d
             for single in str(serie).split(sep='-'):
                 s += (f"consist_pattern_unit;{single};\n")
     return s
-    
+
+'''
 
 def download_link(object_to_download, download_filename, download_link_text):
     """
@@ -179,7 +181,7 @@ def download_button(object_to_download, download_filename, button_text, pickle_i
 
     return dl_link
 
-    
+'''
 
 def material_series_generation(df_couples : pd.DataFrame, dict_output : dict, CP :str):
 
