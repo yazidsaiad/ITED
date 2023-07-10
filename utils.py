@@ -1,5 +1,7 @@
 import pandas as pd
 import streamlit as st
+from io import BytesIO
+
 '''
 import base64
 import pickle
@@ -72,7 +74,7 @@ def material_series_string_generation(df_couples : pd.DataFrame, dict_output : d
         for serie in dict_output[couple]:
             s += (f"consist_pattern;{serie};\n")
             for single in str(serie).split(sep='-'):
-                s += (f"consist_pattern_unit;{single};\n")
+                s += (f"consist_pattern_unit;{single}\n")
     return s
 
 '''
@@ -204,7 +206,20 @@ def material_series_generation(df_couples : pd.DataFrame, dict_output : dict, CP
         s = f.readlines()
     return s
 
-        
+
+def to_excel(df: pd.DataFrame):
+    """
+    This function converts a pandas dataframe to an excel file.
+
+    Keyword argument : pandas dataframe.
+    """
+    in_memory_fp = BytesIO()
+    df.to_excel(in_memory_fp)
+    # Write the file out to disk to demonstrate that it worked.
+    in_memory_fp.seek(0, 0)
+    return in_memory_fp.read()
+
+    
 
 
 

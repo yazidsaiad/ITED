@@ -51,9 +51,11 @@ def app():
         st.divider()
         st.markdown("<h1 style='text-align: center; color: black; font-size : 20px;'>Tableau des séries matérielles</h1>", unsafe_allow_html=True)
         st.dataframe(df__)
+        df_to_save = utils.to_excel(df__)
+        st.download_button(label="📥 Télécharger le fichier généré en format excel", data=df_to_save, file_name='couples codes rames traduits en séries matérielles.xlsx')
         st.divider()
         st.markdown("<h1 style='text-align: center; color: black; font-size : 20px;'>Téléchargement du fichier généré</h1>", unsafe_allow_html=True)
-        st.download_button('Télécharger', material_series_string, file_name='couples codes rames traduits en séries matérielles.txt')
+        st.download_button('📥 Télécharger en format .txt', material_series_string, file_name='couples codes rames traduits en séries matérielles.txt')
 
     st.divider()
 
