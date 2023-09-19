@@ -99,10 +99,13 @@ def data__filling(data : pd.DataFrame, unit_series : dict) -> pd.DataFrame:
     les colonnes à traduire.
     """
     df_to_fill = data.copy()
-
-    for col in data.columns[1:4]:
+    
+    for col in data.columns[1:3]:
         df_to_fill[col] = [get__multiple__series(couple=code, unit_series=unit_series)\
                               for code in list(data[col])]
+        
+    df_to_fill.insert(4, 'Patron de rame - Traduction', [get__multiple__series(couple=code, unit_series=unit_series)\
+                              for code in list(data['Patron de rame'])])
     
     return df_to_fill
 
