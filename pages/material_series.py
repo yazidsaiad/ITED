@@ -46,7 +46,7 @@ def app():
         
         st.info('Génération du fichier en cours...')
         df__ , dict_output, _ = utils.material_series_creation(df_couples=df_couples, df_material_series=df_material_series)
-        material_series_string = utils.material_series_string_generation(df_couples=df_couples, dict_output=dict_output)
+        material_series_string = utils.series__to__string(df_couples=df_couples, dict_output=dict_output)
         st.success('Génération terminée.')
         st.divider()
         st.markdown("<h1 style='text-align: center; color: black; font-size : 20px;'>Tableau des séries matérielles</h1>", unsafe_allow_html=True)
@@ -55,7 +55,7 @@ def app():
         st.markdown("<h1 style='text-align: center; color: black; font-size : 20px;'>Téléchargement du fichier généré</h1>", unsafe_allow_html=True)
         df_to_save = utils.to_excel(df__)
         st.download_button(label="📥 Télécharger en format excel", data=df_to_save, file_name='couples codes rames traduits en séries matérielles.xlsx')
-        st.download_button('📥 Télécharger en format .txt', material_series_string, file_name='couples codes rames traduits en séries matérielles.txt')
+        st.download_button(label = '📥 Télécharger en format .txt', data = material_series_string, file_name='couples codes rames traduits en séries matérielles.txt')
 
     st.divider()
 

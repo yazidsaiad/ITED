@@ -1,29 +1,113 @@
 import pandas as pd
 import streamlit as st
 from io import BytesIO
-
-'''
-import base64
-import pickle
-import uuid
-import re
-import os
-import json
-'''
+import numpy as np
 
 
-def material_series_init():
 
-    df_couples = pd.read_excel(r"C:\Users\PYSD10221\data_management\fichiers de travail\Séries Matérielles\Fichier entrant pour patron de rame à la série matériel.xlsx", 
+def isNaN(string):
+    """
+    This function checks if the keyword argument (string or float) type in nan.
+    Returns True if keyword argument is nan and False if keyword argument is not nan.
+    """
+    return string != string
+
+
+def flatten(l : list):
+    """
+    This function flattens a list of lists. 
+    """
+    return [item for sublist in l for item in sublist]
+
+
+def series__init():
+    """
+    Cette fonction sert de test pour la mise en place du framework.
+    Elle retourne deux dataframes :
+    - df_couples qui est le dataframe des patrons de rames (ou couples de codes roulement);
+    - df_material_series qui est le dataframe des séries matérielles associées aux codes roulement (1 code roulement = 1 lettre unitaire = 1 série matérielle)
+    """
+
+    df_couples = pd.read_excel(r"C:\Users\PYSD10221\data_management\Chantiers Données\Séries Matérielles\Fichier entrant pour patron de rame à la série matériel QSI.xlsx", 
                                 sheet_name = "Couple des codes roulements")
 
-    df_material_series = pd.read_excel(r"C:\Users\PYSD10221\data_management\fichiers de travail\Séries Matérielles\Fichier entrant pour patron de rame à la série matériel.xlsx", 
+    df_material_series = pd.read_excel(r"C:\Users\PYSD10221\data_management\Chantiers Données\Séries Matérielles\Fichier entrant pour patron de rame à la série matériel QSI.xlsx", 
                                         sheet_name = "Série associé aux codes rouleme").set_index("Code roulement").transpose()
     
     return df_couples, df_material_series
 
-@st.cache_data
 
+#@st.cache_data
+def get__unit__series(codes_data : pd.DataFrame) -> dict:
+    """
+    Cette fonction prend en argument un dataframe comprenant les données des codes roulement.
+    Le dataframe présente en première colonne les codes roulement unitaires et présente à partir 
+    de la deuxième colonne la série matérielle associée au code unitaire.
+
+    Ex : (format du df d'entrée)
+        Col1 Col2 Col3 Col4
+        A    A1   A2
+        B    B1
+        C    C1   C2    C3
+
+    Cette fonction retourne un dictionnaire de toutes les séries matérielle.
+    
+    Ex : 
+    {A : [A1, A2], B : [B1], C : [C1, C2, C3]}
+    """
+    keys = list(codes_data.iloc[:,0])
+    values = [[x for x in list(codes_data.T.iloc[1:,k]) if x == x] for k in range(0,len(codes_data))]
+
+    return dict(zip(keys, values))
+
+    
+#@st.cache_data
+def get__multiple__series(couple : str, unit_series : dict) -> list:
+    """
+    Cette fonction permet d'associer à un patron de rame (ie couple de codes roulement)
+    sa série matérielle. 
+    Les régles de combinatoires sont les suivantes :
+        si X et Y sont deux codes roulement tels que 
+        X = (X1, ..., Xn) et Y = (Y1, ..., Yp)
+        alors la série matérielle associée à X-Y est donnée par:
+        X1-Y1, X1-Y2, ..., X1-Yp, X2-Y1, X2-Y2, ..., X2-Yp, ... ...,Xn-Y1, Xn-Y2,... Xn-Yp
+    Elle renvoie la liste des éléments de la série matérielle correspondant au couple d'entrée.
+    """
+    if isNaN(couple):
+        return np.nan
+    
+    else:
+        if len(str(couple).split('-')) < 2:
+            if couple not in list(unit_series.keys()):
+                return couple
+            else:
+                return " ".join([str(item) for item in unit_series[couple]])
+        
+        elif len(couple.split('-')) == 2:
+            X = couple.split('-')[0]
+            Y = couple.split('-')[1]
+
+            return " ".join([str(item) for item in flatten([["{x}-{y}".format(y=y, x=x) for y in unit_series[Y]] for x in unit_series[X]])])
+
+
+
+def data__filling(data : pd.DataFrame, unit_series : dict) -> pd.DataFrame:
+    """
+    Cette fonction prend en argument un tableau pandas et renvoie le même tableau avec les séries matérielles
+    associés aux codes roulements et patrons de rames présents sur les colonnes 2, 3 et 4.
+    N.B. : Une fonctionnalité intéressante serait de pouvoir choisir manuellement au niveau de l'interface
+    les colonnes à traduire.
+    """
+    df_to_fill = data.copy()
+
+    for col in data.columns[1:4]:
+        df_to_fill[col] = [get__multiple__series(couple=code, unit_series=unit_series)\
+                              for code in list(data[col])]
+    
+    return df_to_fill
+
+
+#@st.cache_data
 def material_series_creation(df_couples : pd.DataFrame, df_material_series : pd.DataFrame):
 
     dict_material_series = dict()
@@ -65,9 +149,9 @@ def material_series_creation(df_couples : pd.DataFrame, df_material_series : pd.
 
     return df__, dict_output, length
     
-@st.cache_data
 
-def material_series_string_generation(df_couples : pd.DataFrame, dict_output : dict):
+#@st.cache_data
+def series__to__string(df_couples : pd.DataFrame, dict_output : dict):
     
     s = str()
     for couple in list(df_couples['Patron']):
@@ -77,115 +161,8 @@ def material_series_string_generation(df_couples : pd.DataFrame, dict_output : d
                 s += (f"consist_pattern_unit;{single}\n")
     return s
 
-'''
 
-def download_link(object_to_download, download_filename, download_link_text):
-    """
-    Generates a link to download the given object_to_download.
-
-    object_to_download (str, pd.DataFrame):  The object to be downloaded.
-    download_filename (str): filename and extension of file. e.g. mydata.csv, some_txt_output.txt
-    download_link_text (str): Text to display for download link.
-
-    Examples:
-    download_link(YOUR_DF, 'YOUR_DF.csv', 'Click here to download data!')
-    download_link(YOUR_STRING, 'YOUR_STRING.txt', 'Click here to download your text!')
-
-    """
-    if isinstance(object_to_download,pd.DataFrame):
-        object_to_download = object_to_download.to_csv(index=False)
-
-    # some strings <-> bytes conversions necessary here
-    b64 = base64.b64encode(object_to_download.encode()).decode()
-
-    return f'<a href="data:file/txt;base64,{b64}" download="{download_filename}">{download_link_text}</a>'
-
-
-
-def download_button(object_to_download, download_filename, button_text, pickle_it=False):
-    """
-    Generates a link to download the given object_to_download.
-
-    Params:
-    ------
-    object_to_download:  The object to be downloaded.
-    download_filename (str): filename and extension of file. e.g. mydata.csv,
-    some_txt_output.txt download_link_text (str): Text to display for download
-    link.
-    button_text (str): Text to display on download button (e.g. 'click here to download file')
-    pickle_it (bool): If True, pickle file.
-
-    Returns:
-    -------
-    (str): the anchor tag to download object_to_download
-
-    Examples:
-    --------
-    download_link(your_df, 'YOUR_DF.csv', 'Click to download data!')
-    download_link(your_str, 'YOUR_STRING.txt', 'Click to download text!')
-
-    """
-    if pickle_it:
-        try:
-            object_to_download = pickle.dumps(object_to_download)
-        except pickle.PicklingError as e:
-            st.write(e)
-            return None
-
-    else:
-        if isinstance(object_to_download, bytes):
-            pass
-
-        elif isinstance(object_to_download, pd.DataFrame):
-            object_to_download = object_to_download.to_csv(index=False)
-
-        # Try JSON encode for everything else
-        else:
-            object_to_download = json.dumps(object_to_download, indent=0)
-
-    try:
-        # some strings <-> bytes conversions necessary here
-        b64 = base64.b64encode(object_to_download.encode()).decode()
-
-    except AttributeError as e:
-        b64 = base64.b64encode(object_to_download).decode()
-
-    button_uuid = str(uuid.uuid4()).replace('-', '')
-    button_id = re.sub('\d+', '', button_uuid)
-
-    custom_css = f""" 
-        <style>
-            #{button_id} {{
-                background-color: rgb(255, 255, 255);
-                color: rgb(38, 39, 48);
-                padding: 0.25em 0.38em;
-                position: relative;
-                text-decoration: none;
-                border-radius: 4px;
-                border-width: 1px;
-                border-style: solid;
-                border-color: rgb(230, 234, 241);
-                border-image: initial;
-
-            }} 
-            #{button_id}:hover {{
-                border-color: rgb(246, 51, 102);
-                color: rgb(246, 51, 102);
-            }}
-            #{button_id}:active {{
-                box-shadow: none;
-                background-color: rgb(246, 51, 102);
-                color: white;
-                }}
-        </style> """
-
-    dl_link = custom_css + f'<a download="{download_filename}" id="{button_id}" href="data:file/txt;base64,{b64}">{button_text}</a><br></br>'
-
-    return dl_link
-
-'''
-
-def material_series_generation(df_couples : pd.DataFrame, dict_output : dict, CP :str):
+def series__to__string__v2(df_couples : pd.DataFrame, dict_output : dict, CP :str):
 
     path = r'C:\Users\{id}\Downloads\couples codes rames traduits en séries matérielles.txt'.format(id = CP)
     with open(path, 'w+') as f:
